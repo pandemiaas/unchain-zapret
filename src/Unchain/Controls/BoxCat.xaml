@@ -1,0 +1,84 @@
+<UserControl x:Class="Unchain.Controls.BoxCat"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Cursor="Hand" MouseLeftButtonDown="OnPet">
+    <!-- Виджет: котик лежит в коробке пузиком кверху, вид сверху. Нарисован с нуля. -->
+    <Grid>
+        <Viewbox>
+            <Canvas Width="160" Height="130">
+                <!-- клапаны коробки -->
+                <Path Fill="#C88E56" Data="M 30,25 L 130,25 L 146,6 L 14,6 Z"/>
+                <Path Fill="#B97F49" Data="M 30,105 L 130,105 L 148,124 L 12,124 Z"/>
+                <Path Fill="#A86F3D" Data="M 30,25 L 30,105 L 7,113 L 7,17 Z"/>
+                <Path Fill="#A86F3D" Data="M 130,25 L 130,105 L 153,113 L 153,17 Z"/>
+                <Path Stroke="#22000000" StrokeThickness="1" Data="M 30,25 L 14,6 M 130,25 L 146,6 M 30,105 L 12,124 M 130,105 L 148,124"/>
+                <!-- скотч и надпись -->
+                <Rectangle Canvas.Left="72" Canvas.Top="108" Width="16" Height="15" Fill="#D9B48A" Opacity="0.7"/>
+                <TextBlock Canvas.Left="20" Canvas.Top="9" Text="FRAGILE" FontSize="7" FontWeight="Bold" Foreground="#8E5A2C" Opacity="0.7"/>
+
+                <!-- внутренность коробки -->
+                <Rectangle Canvas.Left="30" Canvas.Top="25" Width="100" Height="80">
+                    <Rectangle.Fill>
+                        <LinearGradientBrush StartPoint="0.5,0" EndPoint="0.5,1">
+                            <GradientStop Color="#4E3019" Offset="0"/>
+                            <GradientStop Color="#6B4426" Offset="0.3"/>
+                            <GradientStop Color="#704729" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Rectangle.Fill>
+                </Rectangle>
+
+                <!-- хвост -->
+                <Path Stroke="#E09450" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 92,92 C 108,99 121,90 117,76">
+                    <Path.RenderTransform><RotateTransform x:Name="TailRot" CenterX="92" CenterY="92"/></Path.RenderTransform>
+                </Path>
+
+                <!-- задние лапки -->
+                <Ellipse Canvas.Left="60" Canvas.Top="86" Width="12" Height="14" Fill="#F0AE6A"/>
+                <Ellipse Canvas.Left="88" Canvas.Top="86" Width="12" Height="14" Fill="#F0AE6A"/>
+                <Ellipse Canvas.Left="61.5" Canvas.Top="92.5" Width="3" Height="3" Fill="#E58A93"/>
+                <Ellipse Canvas.Left="67.5" Canvas.Top="92.5" Width="3" Height="3" Fill="#E58A93"/>
+                <Ellipse Canvas.Left="63.8" Canvas.Top="95.5" Width="4.4" Height="4" Fill="#E58A93"/>
+                <Ellipse Canvas.Left="89.5" Canvas.Top="92.5" Width="3" Height="3" Fill="#E58A93"/>
+                <Ellipse Canvas.Left="95.5" Canvas.Top="92.5" Width="3" Height="3" Fill="#E58A93"/>
+                <Ellipse Canvas.Left="91.8" Canvas.Top="95.5" Width="4.4" Height="4" Fill="#E58A93"/>
+
+                <!-- тело и пузико -->
+                <Canvas>
+                    <Canvas.RenderTransform><ScaleTransform x:Name="Breath" CenterX="80" CenterY="70"/></Canvas.RenderTransform>
+                    <Ellipse Canvas.Left="57" Canvas.Top="41" Width="46" Height="54" Fill="#E9A25F"/>
+                    <Path Stroke="#D08440" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                          Data="M 59,60 Q 62,62 63,66 M 58,70 Q 61,72 62,76 M 101,60 Q 98,62 97,66 M 102,70 Q 99,72 98,76"/>
+                    <Ellipse Canvas.Left="66" Canvas.Top="52" Width="28" Height="36" Fill="#F7DCBC"/>
+                </Canvas>
+
+                <!-- передние лапки, «месят воздух» -->
+                <Ellipse Canvas.Left="64" Canvas.Top="50" Width="11" Height="13" Fill="#F7DCBC" Stroke="#E9C29A" StrokeThickness="0.8">
+                    <Ellipse.RenderTransform><TranslateTransform x:Name="PawL"/></Ellipse.RenderTransform>
+                </Ellipse>
+                <Ellipse Canvas.Left="85" Canvas.Top="50" Width="11" Height="13" Fill="#F7DCBC" Stroke="#E9C29A" StrokeThickness="0.8">
+                    <Ellipse.RenderTransform><TranslateTransform x:Name="PawR"/></Ellipse.RenderTransform>
+                </Ellipse>
+
+                <!-- голова -->
+                <Path Fill="#F0AE6A" Data="M 66,33 L 63,21 L 73,27 Z M 94,33 L 97,21 L 87,27 Z"/>
+                <Path Fill="#F6C9A0" Data="M 67,30 L 65.5,24 L 71,27.5 Z M 93,30 L 94.5,24 L 89,27.5 Z"/>
+                <Ellipse Canvas.Left="63" Canvas.Top="25" Width="34" Height="29" Fill="#F0AE6A"/>
+                <Path Stroke="#D08440" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 77,27.5 L 77,31 M 80,27 L 80,31 M 83,27.5 L 83,31"/>
+                <!-- довольная мордочка -->
+                <Path x:Name="Eyes" Stroke="#5A3A22" StrokeThickness="1.7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 70,38 Q 72.5,35.5 75,38 M 85,38 Q 87.5,35.5 90,38"/>
+                <Path Fill="#D9707A" Data="M 78.5,41.5 L 81.5,41.5 L 80,43.3 Z"/>
+                <Path Stroke="#5A3A22" StrokeThickness="1.3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                      Data="M 76.5,44.2 Q 78.2,46.2 80,44.2 Q 81.8,46.2 83.5,44.2"/>
+                <Ellipse Canvas.Left="67" Canvas.Top="41" Width="5" Height="3" Fill="#F2A3A0" Opacity="0.7"/>
+                <Ellipse Canvas.Left="88" Canvas.Top="41" Width="5" Height="3" Fill="#F2A3A0" Opacity="0.7"/>
+                <Path Stroke="#FFFFFF" StrokeThickness="0.6" Opacity="0.55"
+                      Data="M 68,43 L 58,41 M 68,44.5 L 58,46 M 92,43 L 102,41 M 92,44.5 L 102,46"/>
+            </Canvas>
+        </Viewbox>
+        <!-- сюда вылетают сердечки -->
+        <Canvas x:Name="Fx" IsHitTestVisible="False" ClipToBounds="False"/>
+    </Grid>
+</UserControl>

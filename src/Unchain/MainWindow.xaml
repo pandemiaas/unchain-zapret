@@ -1,0 +1,693 @@
+<Window x:Class="Unchain.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:Unchain.Controls"
+        Title="Unchain" Width="460" Height="720"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
+        Background="{StaticResource Bg}" Foreground="{StaticResource Text}"
+        FontFamily="{StaticResource UiFont}" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Ideal" Icon="Assets/app.ico"
+        PreviewKeyDown="OnWindowKey">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="44" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="0"/>
+    </WindowChrome.WindowChrome>
+
+    <Window.Resources>
+        <!-- Единая прокрутка для всех вкладок и панелей -->
+        <Style x:Key="PageScroll" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
+            <Setter Property="Focusable" Value="False"/>
+        </Style>
+        <Style x:Key="PageStack" TargetType="StackPanel">
+            <Setter Property="Margin" Value="16,0,16,24"/>
+        </Style>
+        <Style x:Key="Chevron" TargetType="c:Glyph">
+            <Setter Property="Icon" Value="{StaticResource IcChevron}"/>
+            <Setter Property="Width" Value="14"/>
+            <Setter Property="Height" Value="14"/>
+            <Setter Property="Foreground" Value="{StaticResource Faint}"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid ClipToBounds="True">
+
+        <!-- ═════════ Живой фон: два медленно плывущих пятна света ═════════ -->
+        <Canvas IsHitTestVisible="False">
+            <Ellipse Width="560" Height="560" Canvas.Left="-200" Canvas.Top="-170">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop x:Name="Blob1Stop" Color="#1A2130" Offset="0"/>
+                        <GradientStop Color="#000B0C0F" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+                <Ellipse.RenderTransform><TranslateTransform x:Name="Blob1T"/></Ellipse.RenderTransform>
+            </Ellipse>
+            <Ellipse Width="520" Height="520" Canvas.Left="120" Canvas.Top="380">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop x:Name="Blob2Stop" Color="#151A24" Offset="0"/>
+                        <GradientStop Color="#000B0C0F" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+                <Ellipse.RenderTransform><TranslateTransform x:Name="Blob2T"/></Ellipse.RenderTransform>
+            </Ellipse>
+        </Canvas>
+
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <!-- ═════════ Заголовок ═════════ -->
+            <Grid Grid.Row="0">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="18,0,0,0">
+                    <Border x:Name="TitleDot" Width="20" Height="20" CornerRadius="10" Background="{StaticResource Faint}" Margin="0,0,9,0">
+                        <c:Glyph Icon="{StaticResource IcPower}" Width="12" Height="12" Thickness="3" Foreground="#0B0C0F"/>
+                    </Border>
+                    <TextBlock Text="Unchain" FontSize="13" FontWeight="SemiBold" Foreground="{StaticResource Text2}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Style="{StaticResource ChromeButton}" Click="OnMinimize" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Data="M0,0 L10,0" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
+                    </Button>
+                    <Button Style="{StaticResource CloseButton}" Click="OnCloseClick" WindowChrome.IsHitTestVisibleInChrome="True">
+                        <Path Data="M0,0 L10,10 M10,0 L0,10" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1"/>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!-- ═════════ Вкладки со скользящим индикатором ═════════ -->
+            <Border Grid.Row="1" Margin="16,2,16,12" Style="{StaticResource CardBox}" CornerRadius="13" Padding="3">
+                <Grid x:Name="TabsGrid">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/><ColumnDefinition/><ColumnDefinition/><ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="TabIndicator" Grid.Column="0" Background="#262930" CornerRadius="10"
+                            BorderBrush="#30343C" BorderThickness="1" HorizontalAlignment="Left">
+                        <Border.RenderTransform><TranslateTransform x:Name="TabIndicatorT"/></Border.RenderTransform>
+                    </Border>
+                    <Button x:Name="Tab0" Grid.Column="0" Style="{StaticResource TabButton}" Tag="0" Click="OnTab">
+                        <StackPanel Orientation="Horizontal"><c:Glyph Icon="{StaticResource IcHome}" Width="15" Height="15" Margin="0,0,6,0"/><TextBlock Text="Главная"/></StackPanel>
+                    </Button>
+                    <Button x:Name="Tab1" Grid.Column="1" Style="{StaticResource TabButton}" Tag="1" Click="OnTab">
+                        <StackPanel Orientation="Horizontal"><c:Glyph Icon="{StaticResource IcShield}" Width="15" Height="15" Margin="0,0,6,0"/><TextBlock Text="Обход"/></StackPanel>
+                    </Button>
+                    <Button x:Name="Tab2" Grid.Column="2" Style="{StaticResource TabButton}" Tag="2" Click="OnTab">
+                        <StackPanel Orientation="Horizontal"><c:Glyph Icon="{StaticResource IcList}" Width="15" Height="15" Margin="0,0,6,0"/><TextBlock Text="Списки"/></StackPanel>
+                    </Button>
+                    <Button x:Name="Tab3" Grid.Column="3" Style="{StaticResource TabButton}" Tag="3" Click="OnTab">
+                        <StackPanel Orientation="Horizontal"><c:Glyph Icon="{StaticResource IcGear}" Width="15" Height="15" Margin="0,0,6,0"/><TextBlock Text="Настройки"/></StackPanel>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="2" x:Name="Pages">
+
+                <!-- ═══════════════════ ГЛАВНАЯ ═══════════════════ -->
+                <ScrollViewer x:Name="PageHome" Style="{StaticResource PageScroll}">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <StackPanel Margin="0,6,0,16">
+                            <c:PowerButton x:Name="PowerBtn" Click="OnPowerClick" HorizontalAlignment="Center"/>
+                            <TextBlock x:Name="StatusTitle" Text="Выключено" FontSize="24" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" Margin="0,14,0,0"/>
+                            <TextBlock x:Name="StatusSub" Text="Нажми, чтобы включить обход" FontSize="13"
+                                       Foreground="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,5,0,0"
+                                       TextAlignment="Center" TextWrapping="Wrap" MaxWidth="360"/>
+                            <Grid x:Name="ProgressHost" Margin="60,14,60,0" Height="4" Opacity="0" ClipToBounds="True">
+                                <Border Background="#22252C" CornerRadius="2"/>
+                                <Border x:Name="ProgressFill" Background="{StaticResource Green}" CornerRadius="2"
+                                        HorizontalAlignment="Left" Width="0"/>
+                                <Border x:Name="ProgressShine" Width="60" HorizontalAlignment="Left" CornerRadius="2">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                                            <GradientStop Color="#002ED173" Offset="0"/>
+                                            <GradientStop Color="#992ED173" Offset="0.5"/>
+                                            <GradientStop Color="#002ED173" Offset="1"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                    <Border.RenderTransform><TranslateTransform x:Name="ShineT"/></Border.RenderTransform>
+                                </Border>
+                            </Grid>
+                        </StackPanel>
+
+                        <!-- Плашки: пинг с графиком, стратегия, время -->
+                        <UniformGrid Columns="3" Margin="-4,0,-4,0">
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" TextElement.Foreground="{StaticResource Muted}">
+                                        <c:Glyph Icon="{StaticResource IcPulse}" Width="12" Height="12" Thickness="2.2" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Пинг" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="StatPing" Text="—" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                    <Canvas Height="18" Margin="0,4,0,0" ClipToBounds="True" x:Name="StatPingHost">
+                                        <Polyline x:Name="StatPingLine" Stroke="{StaticResource Green}" StrokeThickness="1.6"
+                                                  StrokeLineJoin="Round" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
+                                    </Canvas>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" TextElement.Foreground="{StaticResource Muted}">
+                                        <c:Glyph Icon="{StaticResource IcSliders}" Width="12" Height="12" Thickness="2.2" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Стратегия" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="StatStrategy" Text="—" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="StatStrategySub" Text="авто" FontSize="11" Foreground="{StaticResource Faint}" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Style="{StaticResource StatTile}">
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal" TextElement.Foreground="{StaticResource Muted}">
+                                        <c:Glyph Icon="{StaticResource IcBell}" Width="12" Height="12" Thickness="2.2" Margin="0,0,5,0"/>
+                                        <TextBlock Text="Работает" FontSize="11"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="StatTime" Text="—" FontSize="18" FontWeight="SemiBold" Margin="0,4,0,0" FontFamily="{StaticResource MonoFont}"/>
+                                    <TextBlock x:Name="StatTimeSub" Text="выключено" FontSize="11" Foreground="{StaticResource Faint}" Margin="0,5,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </UniformGrid>
+
+                        <TextBlock Text="СЕРВИСЫ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource IconTile}" Background="#24FF4E55" TextElement.Foreground="#FF6A70">
+                                        <c:Glyph Icon="{StaticResource IcPlay}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="YouTube" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse x:Name="YtDot" Width="7" Height="7" Fill="{StaticResource Faint}" Margin="0,0,7,0"/>
+                                        <TextBlock x:Name="YtText" Text="Проверка…" FontSize="12.5" Foreground="{StaticResource Muted}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource IconTile}" Background="#247B86FF" TextElement.Foreground="#8C96FF">
+                                        <c:Glyph Icon="{StaticResource IcHeadset}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="Discord" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse x:Name="DcDot" Width="7" Height="7" Fill="{StaticResource Faint}" Margin="0,0,7,0"/>
+                                        <TextBlock x:Name="DcText" Text="Проверка…" FontSize="12.5" Foreground="{StaticResource Muted}"/>
+                                    </StackPanel>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource IconTile}" Background="#243BB6F5" TextElement.Foreground="#55C2F7">
+                                        <c:Glyph Icon="{StaticResource IcPlane}"/>
+                                    </Border>
+                                    <TextBlock Grid.Column="1" Text="Telegram" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse x:Name="TgDot" Width="7" Height="7" Fill="{StaticResource Faint}" Margin="0,0,7,0"/>
+                                        <TextBlock x:Name="TgText" Text="Без прокси" FontSize="12.5" Foreground="{StaticResource Muted}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <StackPanel x:Name="ExtraBlock" Visibility="Collapsed">
+                            <TextBlock Text="ТВОИ СЕРВИСЫ" Style="{StaticResource SectionTitle}"/>
+                            <Border Style="{StaticResource CardBox}" Padding="14,14,8,8">
+                                <WrapPanel x:Name="ExtraServices"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Виджеты: котик в коробке и змейка -->
+                        <TextBlock Text="ВИДЖЕТЫ" Style="{StaticResource SectionTitle}"/>
+                        <UniformGrid Columns="2" Margin="-4,0,-4,0">
+                            <Border Style="{StaticResource StatTile}" Padding="10,10,10,8">
+                                <StackPanel>
+                                    <c:BoxCat x:Name="BoxCatWidget" Height="112"/>
+                                    <TextBlock x:Name="CatPetsText" Text="Погладь котика" FontSize="11" Foreground="{StaticResource Faint}"
+                                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                </StackPanel>
+                            </Border>
+                            <Button x:Name="SnakeWidgetBtn" Style="{StaticResource RowButton}" Click="OnOpenSnake" Margin="4,0">
+                                <Border Style="{StaticResource CardBox}" CornerRadius="14" Padding="10,10,10,8">
+                                    <StackPanel>
+                                        <Border Background="#0E0F13" CornerRadius="10" Height="112">
+                                            <Grid>
+                                                <c:SnakeGame x:Name="SnakeDemo" Cols="13" Rows="10" Demo="True" Margin="6"/>
+                                                <Border x:Name="SnakePlayHint" Background="#B30B0C0F" CornerRadius="10" Opacity="0">
+                                                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal"
+                                                                TextElement.Foreground="{StaticResource Green}">
+                                                        <c:Glyph Icon="{StaticResource IcStart}" Width="18" Height="18" Margin="0,0,7,0"/>
+                                                        <TextBlock Text="Играть" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                    </StackPanel>
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                        <TextBlock x:Name="SnakeBestText" Text="Змейка · нажми, чтобы играть" FontSize="11" Foreground="{StaticResource Faint}"
+                                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                                    </StackPanel>
+                                </Border>
+                            </Button>
+                        </UniformGrid>
+
+                        <Grid Margin="8,14,8,0">
+                            <TextBlock x:Name="HomeHint" Text="Способ обхода подберётся автоматически" FontSize="12"
+                                       Foreground="{StaticResource Faint}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                            <Button x:Name="HomeReselect" Style="{StaticResource LinkButton}" Content="Подобрать заново"
+                                    HorizontalAlignment="Right" Click="OnReselect" Visibility="Collapsed"/>
+                        </Grid>
+                        <c:CatBall HorizontalAlignment="Center" Margin="0,18,0,0" Opacity="0.9"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ═══════════════════ ОБХОД ═══════════════════ -->
+                <ScrollViewer x:Name="PageBypass" Visibility="Collapsed" Style="{StaticResource PageScroll}">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <Border Style="{StaticResource HeroCard}" Margin="0,2,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="14" Style="{StaticResource TileGreen}" Margin="0,0,14,0">
+                                    <c:Glyph Icon="{StaticResource IcShield}" Width="22" Height="22" Thickness="2"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="SumStrategy" Text="Стратегия не выбрана" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="SumStrategySub" Text="Подберётся при первом включении" Style="{StaticResource RowHint}"/>
+                                </StackPanel>
+                                <Border Grid.Column="2" Style="{StaticResource Badge}">
+                                    <TextBlock x:Name="SumPing" Text="— мс" FontSize="12" FontWeight="SemiBold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="СТРАТЕГИЯ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileGreen}"><c:Glyph Icon="{StaticResource IcSliders}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Выбор стратегии" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock x:Name="StrategyCurrent" Text="Ещё не подобрана" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Style="{StaticResource SegmentHost}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton x:Name="ModeAuto" Style="{StaticResource Segment}" GroupName="Mode" Content="Авто" Checked="OnModeChanged"/>
+                                            <RadioButton x:Name="ModeManual" Style="{StaticResource Segment}" GroupName="Mode" Content="Вручную" Checked="OnModeChanged"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Button Style="{StaticResource RowButton}" Click="OnOpenStrategies">
+                                    <Grid Style="{StaticResource Row}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource TileViolet}"><c:Glyph Icon="{StaticResource IcFlask}"/></Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Все стратегии и тест" Style="{StaticResource RowTitle}"/>
+                                            <TextBlock Text="Ручной выбор, пинг и проверка" Style="{StaticResource RowHint}"/>
+                                        </StackPanel>
+                                        <c:Glyph Grid.Column="2" Style="{StaticResource Chevron}"/>
+                                    </Grid>
+                                </Button>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileCyan}"><c:Glyph Icon="{StaticResource IcRefresh}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Подобрать заново" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Если что-то перестало открываться" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Button x:Name="ReselectBtn" Grid.Column="2" Style="{StaticResource SoftButton}" Content="Запустить" Click="OnReselect" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="ФИЛЬТРЫ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileRose}"><c:Glyph Icon="{StaticResource IcGamepad}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                        <TextBlock Text="Игровой фильтр" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Игры и порты выше 1023" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Style="{StaticResource SegmentHost}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton x:Name="GfOff" Style="{StaticResource Segment}" GroupName="Gf" Content="Выкл" Checked="OnGameFilter"/>
+                                            <RadioButton x:Name="GfTcp" Style="{StaticResource Segment}" GroupName="Gf" Content="TCP" Checked="OnGameFilter"/>
+                                            <RadioButton x:Name="GfUdp" Style="{StaticResource Segment}" GroupName="Gf" Content="UDP" Checked="OnGameFilter"/>
+                                            <RadioButton x:Name="GfAll" Style="{StaticResource Segment}" GroupName="Gf" Content="Все" Checked="OnGameFilter"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileBlue}"><c:Glyph Icon="{StaticResource IcGlobe}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                        <TextBlock Text="IPSet" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock x:Name="IpsetHint" Text="Обход по списку IP-адресов" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Border Grid.Column="2" Style="{StaticResource SegmentHost}">
+                                        <StackPanel Orientation="Horizontal">
+                                            <RadioButton x:Name="IpLoaded" Style="{StaticResource Segment}" GroupName="Ip" Content="Список" Checked="OnIpset"/>
+                                            <RadioButton x:Name="IpAny" Style="{StaticResource Segment}" GroupName="Ip" Content="Все IP" Checked="OnIpset"/>
+                                            <RadioButton x:Name="IpNone" Style="{StaticResource Segment}" GroupName="Ip" Content="Выкл" Checked="OnIpset"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="ОБСЛУЖИВАНИЕ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileCyan}"><c:Glyph Icon="{StaticResource IcDownload}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Обновить IPSet" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Свежий список IP из репозитория Flowseal" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Button x:Name="IpsetUpdateBtn" Grid.Column="2" Style="{StaticResource SoftButton}" Content="Обновить" Click="OnIpsetUpdate" VerticalAlignment="Center"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Button Style="{StaticResource RowButton}" Click="OnOpenDiag">
+                                    <Grid Style="{StaticResource Row}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource TileRose}"><c:Glyph Icon="{StaticResource IcPulse}"/></Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Диагностика" Style="{StaticResource RowTitle}"/>
+                                            <TextBlock Text="Конфликты, службы, права, доступ к GitHub" Style="{StaticResource RowHint}"/>
+                                        </StackPanel>
+                                        <c:Glyph Grid.Column="2" Style="{StaticResource Chevron}"/>
+                                    </Grid>
+                                </Button>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileAmber}"><c:Glyph Icon="{StaticResource IcFolder}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Версия zapret" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock x:Name="ZapretVersionText" Text="—" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <Button Grid.Column="2" Style="{StaticResource SoftButton}" Content="Папка" Click="OnOpenFolder" VerticalAlignment="Center"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ═══════════════════ СПИСКИ ═══════════════════ -->
+                <ScrollViewer x:Name="PageLists" Visibility="Collapsed" Style="{StaticResource PageScroll}">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <Border Style="{StaticResource HeroCard}" Margin="0,2,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="14" Style="{StaticResource TileBlue}" Margin="0,0,14,0">
+                                    <c:Glyph Icon="{StaticResource IcList}" Width="22" Height="22" Thickness="2"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="SumLists" Text="В обходе 0 сайтов" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="SumListsSub" Text="Добавь сервисы из каталога" Style="{StaticResource RowHint}"/>
+                                </StackPanel>
+                                <Border Grid.Column="2" Style="{StaticResource Badge}">
+                                    <TextBlock x:Name="SumListsBadge" Text="0" FontSize="12" FontWeight="SemiBold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource SegmentHost}" HorizontalAlignment="Left" Margin="0,16,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <RadioButton x:Name="LkBypass" Style="{StaticResource Segment}" GroupName="Lk" Content="Обходить" Checked="OnListKind"/>
+                                <RadioButton x:Name="LkExclude" Style="{StaticResource Segment}" GroupName="Lk" Content="Исключения" Checked="OnListKind"/>
+                                <RadioButton x:Name="LkIp" Style="{StaticResource Segment}" GroupName="Lk" Content="Исключённые IP" Checked="OnListKind"/>
+                            </StackPanel>
+                        </Border>
+                        <TextBlock x:Name="ListKindHint" Style="{StaticResource RowHint}" Margin="6,10,0,0"/>
+
+                        <StackPanel x:Name="CatalogRow">
+                            <TextBlock Text="КАТАЛОГ" Style="{StaticResource SectionTitle}"/>
+                            <Border Style="{StaticResource CardBox}">
+                                <Button Style="{StaticResource RowButton}" Click="OnOpenCatalog">
+                                    <Grid Style="{StaticResource Row}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource IconTile}" Background="#262ED173" TextElement.Foreground="{StaticResource Green}">
+                                            <c:Glyph Icon="{StaticResource IcGrid}"/>
+                                        </Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Каталог сервисов" Style="{StaticResource RowTitle}"/>
+                                            <TextBlock x:Name="CatalogCount" Text="Соцсети, мессенджеры, игры" Style="{StaticResource RowHint}"/>
+                                        </StackPanel>
+                                        <c:Glyph Grid.Column="2" Style="{StaticResource Chevron}"/>
+                                    </Grid>
+                                </Button>
+                            </Border>
+                        </StackPanel>
+
+                        <TextBlock Text="ДОБАВИТЬ ВРУЧНУЮ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}" Padding="12">
+                            <StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Grid>
+                                        <TextBox x:Name="AddBox" Style="{StaticResource Field}" KeyDown="OnAddKey" TextChanged="OnAddTextChanged"/>
+                                        <TextBlock x:Name="AddPlaceholder" Text="example.com" Foreground="{StaticResource Faint}" FontSize="13"
+                                                   Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                                    </Grid>
+                                    <Button Grid.Column="1" Style="{StaticResource AccentButton}" Margin="8,0,0,0" Padding="12,8" Click="OnAdd">
+                                        <StackPanel Orientation="Horizontal">
+                                            <c:Glyph Icon="{StaticResource IcPlus}" Width="14" Height="14" Thickness="2.4" Margin="0,0,6,0"/>
+                                            <TextBlock Text="Добавить"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Grid>
+                                <TextBlock x:Name="AddError" Foreground="{StaticResource Red}" FontSize="12" Margin="2,8,0,0" Visibility="Collapsed" TextWrapping="Wrap"/>
+                                <TextBlock Text="Можно вставить сразу несколько — через пробел, запятую или с новой строки" Style="{StaticResource RowHint}" Margin="2,8,0,0"/>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock x:Name="MyListTitle" Text="МОИ САЙТЫ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel x:Name="MyList"/>
+                        </Border>
+
+                        <TextBlock x:Name="BuiltinText" Style="{StaticResource RowHint}" Margin="8,12,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- ═══════════════════ НАСТРОЙКИ ═══════════════════ -->
+                <ScrollViewer x:Name="PageSettings" Visibility="Collapsed" Style="{StaticResource PageScroll}">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <Border Style="{StaticResource HeroCard}" Margin="0,2,0,0">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Width="46" Height="46" CornerRadius="14" Style="{StaticResource TileGreen}" Margin="0,0,14,0">
+                                    <c:Glyph Icon="{StaticResource IcPower}" Width="22" Height="22" Thickness="2"/>
+                                </Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock x:Name="SumApp" Text="Unchain" FontSize="17" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="SumAppSub" Text="Открытый код · MIT" Style="{StaticResource RowHint}"/>
+                                </StackPanel>
+                                <Border Grid.Column="2" Style="{StaticResource Badge}">
+                                    <TextBlock x:Name="SumState" Text="Выключено" FontSize="12" FontWeight="SemiBold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="ЗАПУСК" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileGreen}"><c:Glyph Icon="{StaticResource IcStart}"/></Border>
+                                    <TextBlock Grid.Column="1" Text="Запускать вместе с Windows" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                    <ToggleButton x:Name="SwAutostart" Grid.Column="2" Style="{StaticResource Switch}" Click="OnSwitch"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileAmber}"><c:Glyph Icon="{StaticResource IcBolt}"/></Border>
+                                    <TextBlock Grid.Column="1" Text="Включать обход при запуске" Style="{StaticResource RowTitle}" VerticalAlignment="Center"/>
+                                    <ToggleButton x:Name="SwEnableOnLaunch" Grid.Column="2" Style="{StaticResource Switch}" Click="OnSwitch"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileBlue}"><c:Glyph Icon="{StaticResource IcTray}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Сворачивать в трей" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Крестик прячет окно, обход продолжает работать" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <ToggleButton x:Name="SwTray" Grid.Column="2" Style="{StaticResource Switch}" Click="OnSwitch"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileViolet}"><c:Glyph Icon="{StaticResource IcBell}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Следить за новыми версиями" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="При включении пробовать свежий zapret первым" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <ToggleButton x:Name="SwUpdates" Grid.Column="2" Style="{StaticResource Switch}" Click="OnSwitch"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="TELEGRAM" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <StackPanel>
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileBlue}"><c:Glyph Icon="{StaticResource IcPlane}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Окно прокси при включении" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Сразу предлагать подключить прокси в Telegram" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <ToggleButton x:Name="SwTgDialog" Grid.Column="2" Style="{StaticResource Switch}" Click="OnSwitch"/>
+                                </Grid>
+                                <Border Style="{StaticResource RowDivider}"/>
+                                <Button Style="{StaticResource RowButton}" Click="OnTgLink">
+                                    <Grid Style="{StaticResource Row}">
+                                        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <Border Style="{StaticResource TileCyan}"><c:Glyph Icon="{StaticResource IcLink}"/></Border>
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="Добавить прокси в Telegram" Style="{StaticResource RowTitle}"/>
+                                            <TextBlock x:Name="TgAddrText" Text="SOCKS5 · 127.0.0.1:1080" Style="{StaticResource RowHint}"/>
+                                        </StackPanel>
+                                        <c:Glyph Grid.Column="2" Style="{StaticResource Chevron}"/>
+                                    </Grid>
+                                </Button>
+                            </StackPanel>
+                        </Border>
+
+                        <TextBlock Text="ПРОЧЕЕ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}">
+                            <Button Style="{StaticResource RowButton}" Click="OnOpenLog">
+                                <Grid Style="{StaticResource Row}">
+                                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                    <Border Style="{StaticResource TileViolet}"><c:Glyph Icon="{StaticResource IcTerminal}"/></Border>
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <TextBlock Text="Журнал" Style="{StaticResource RowTitle}"/>
+                                        <TextBlock Text="Что происходит под капотом" Style="{StaticResource RowHint}"/>
+                                    </StackPanel>
+                                    <c:Glyph Grid.Column="2" Style="{StaticResource Chevron}"/>
+                                </Grid>
+                            </Button>
+                        </Border>
+
+                        <c:CatBall HorizontalAlignment="Center" Margin="0,22,0,0"/>
+                        <TextBlock x:Name="AboutText" Text="Unchain · open source · MIT" Style="{StaticResource RowHint}"
+                                   HorizontalAlignment="Center" Margin="0,6,0,0"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+
+            <!-- ═════════ Панель поверх окна (каталог, стратегии, диагностика, журнал) ═════════ -->
+            <Grid x:Name="Sheet" Grid.Row="1" Grid.RowSpan="2" Visibility="Collapsed" Background="{StaticResource Bg}">
+                <Grid.RenderTransform><TranslateTransform x:Name="SheetT"/></Grid.RenderTransform>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Margin="10,14,16,16">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <Button Style="{StaticResource GhostIcon}" Click="OnSheetBack" ToolTip="Назад (Esc)">
+                        <c:Glyph Icon="{StaticResource IcBack}" Width="18" Height="18" Thickness="2.2"/>
+                    </Button>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,12,0">
+                        <TextBlock x:Name="SheetTitle" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBlock x:Name="SheetSub" Style="{StaticResource RowHint}" Margin="0,2,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="SheetAction" Style="{StaticResource SoftButton}" Click="OnSheetAction" Visibility="Collapsed"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Каталог -->
+                <ScrollViewer x:Name="SheetCatalog" Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="Collapsed">
+                    <StackPanel Style="{StaticResource PageStack}" x:Name="CatalogChips"/>
+                </ScrollViewer>
+
+                <!-- Стратегии и тест -->
+                <ScrollViewer x:Name="SheetStrategies" Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="Collapsed">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <Border Style="{StaticResource CardBox}">
+                            <Grid Style="{StaticResource Row}">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                <Border Style="{StaticResource TileViolet}"><c:Glyph Icon="{StaticResource IcFlask}"/></Border>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="Проверить все стратегии" Style="{StaticResource RowTitle}"/>
+                                    <TextBlock x:Name="TestAllHint" Text="Займёт пару минут" Style="{StaticResource RowHint}"/>
+                                </StackPanel>
+                                <Button x:Name="TestAllBtn" Grid.Column="2" Style="{StaticResource AccentButton}" Content="Начать" Click="OnTestAll" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="СТРАТЕГИИ" Style="{StaticResource SectionTitle}"/>
+                        <Border Style="{StaticResource CardBox}" Padding="14,12,8,8">
+                            <StackPanel>
+                                <TextBlock x:Name="ManualHint" Style="{StaticResource RowHint}" Margin="0,0,0,10"/>
+                                <WrapPanel x:Name="StrategyChips"/>
+                            </StackPanel>
+                        </Border>
+                        <StackPanel x:Name="TestResultsBlock" Visibility="Collapsed">
+                            <TextBlock Text="РЕЗУЛЬТАТЫ" Style="{StaticResource SectionTitle}"/>
+                            <Border Style="{StaticResource CardBox}" Padding="16,8">
+                                <StackPanel x:Name="TestResults"/>
+                            </Border>
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Диагностика -->
+                <ScrollViewer x:Name="SheetDiag" Grid.Row="1" Style="{StaticResource PageScroll}" Visibility="Collapsed">
+                    <StackPanel Style="{StaticResource PageStack}">
+                        <Border Style="{StaticResource CardBox}" Padding="16,6">
+                            <StackPanel x:Name="DiagResults"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Змейка -->
+                <Grid x:Name="SheetSnake" Grid.Row="1" Margin="16,0,16,20" Visibility="Collapsed">
+                    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <Border Style="{StaticResource CardBox}" Padding="10">
+                        <Grid>
+                            <c:SnakeGame x:Name="SnakePlay" Cols="18" Rows="18" Demo="False"/>
+                            <Border x:Name="SnakeOverlay" Background="#CC0B0C0F" CornerRadius="12">
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock x:Name="SnakeOverlayTitle" Text="Змейка" FontSize="22" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                                    <TextBlock x:Name="SnakeOverlaySub" Text="Нажми любую стрелку, чтобы начать" Style="{StaticResource RowHint}"
+                                               HorizontalAlignment="Center" Margin="0,6,0,14" FontSize="12.5"/>
+                                    <Button x:Name="SnakeAgain" Style="{StaticResource AccentButton}" Content="Ещё раз" Padding="18,8"
+                                            HorizontalAlignment="Center" Click="OnSnakeAgain" Visibility="Collapsed"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Border>
+                    <TextBlock Grid.Row="1" Text="Стрелки или WASD — управление · пробел — заново · Esc — выйти"
+                               Style="{StaticResource RowHint}" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+                </Grid>
+
+                <!-- Журнал -->
+                <Border x:Name="SheetLog" Grid.Row="1" Style="{StaticResource CardBox}" Margin="16,0,16,20" Visibility="Collapsed">
+                    <TextBox x:Name="LogBox" IsReadOnly="True" Background="Transparent" BorderThickness="0"
+                             Foreground="{StaticResource Muted}" FontFamily="{StaticResource MonoFont}" FontSize="11"
+                             TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                             Padding="10,8" CaretBrush="Transparent"/>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ═════════ Всплывающее уведомление ═════════ -->
+        <Border x:Name="ToastBox" VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,22"
+                Background="#F01E2127" BorderBrush="#30343C" BorderThickness="1" CornerRadius="12" Padding="16,10"
+                Opacity="0" IsHitTestVisible="False">
+            <Border.RenderTransform><TranslateTransform x:Name="ToastT" Y="20"/></Border.RenderTransform>
+            <StackPanel Orientation="Horizontal">
+                <Ellipse x:Name="ToastDot" Width="7" Height="7" Fill="{StaticResource Green}" Margin="0,0,9,0" VerticalAlignment="Center"/>
+                <TextBlock x:Name="ToastText" FontSize="12.5" Foreground="{StaticResource Text}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
