@@ -23,8 +23,9 @@ jobs:
       - name: Publish
         run: >
           dotnet publish src/Unchain/Unchain.csproj -c Release -r win-x64
-          --self-contained false -p:PublishSingleFile=true
-          -p:IncludeNativeLibrariesForSelfExtract=true -o out
+          --self-contained true -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -o out
 
       - uses: actions/upload-artifact@v4
         with:

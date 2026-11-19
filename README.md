@@ -18,13 +18,17 @@
 
 Данные лежат в `C:\ProgramData\Unchain` (`settings.json`, `log.txt`, `lists\` — твои списки, `zapret\<версия>`).
 
+## Скачать
+
+Готовый `Unchain.exe` — на странице [Releases](https://github.com/pandemiaas/unchain-zapret/releases). .NET ставить не нужно, он встроен.
+
 ## Сборка
 
 ```
 dotnet publish src/Unchain/Unchain.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=true -o out
 ```
 
-Или просто push в GitHub — workflow соберёт `Unchain.exe`, а на тег `v*` создаст релиз.
+GitHub Actions собирает `Unchain.exe` на каждый push, а на тег `v*` создаёт релиз.
 
 ## Важно
 
