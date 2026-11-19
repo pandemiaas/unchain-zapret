@@ -21,6 +21,9 @@
     <!-- WinForms подключён только для трея: не даём его типам конфликтовать с WPF -->
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
+    <!-- WPF-проекты по умолчанию не подключают их глобально -->
+    <Using Include="System.IO" />
+    <Using Include="System.Net.Http" />
   </ItemGroup>
 
   <ItemGroup>
