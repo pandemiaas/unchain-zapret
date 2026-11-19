@@ -32,8 +32,21 @@ jobs:
           name: Unchain-win-x64
           path: out/Unchain.exe
 
+      - name: Read version
+        shell: pwsh
+        run: |
+          $v = ([xml](Get-Content src/Unchain/Unchain.csproj)).Project.PropertyGroup.Version
+          "VERSION=$v" >> $env:GITHUB_ENV
+
+      # Релиз создаётся сам при каждом обновлении main: тег v<Version> из csproj
       - name: Release
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: github.ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: v${{ env.VERSION }}
+          name: Unchain ${{ env.VERSION }}
+          target_commitish: ${{ github.sha }}
+          body: |
+            Скачай **Unchain.exe** ниже и запусти. .NET ставить не нужно — он встроен.
+            Windows попросит права администратора: без них zapret не работает.
           files: out/Unchain.exe
